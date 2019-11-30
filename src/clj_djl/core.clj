@@ -4,13 +4,16 @@
            (ai.djl.mxnet.zoo MxModelZoo)
            (ai.djl.training.util ProgressBar)
            (ai.djl.modality.cv ImageVisualization)
-           (javax.imageio ImageIO)))
+           (javax.imageio ImageIO)
+           (java.awt.image BufferedImage)))
 
-(defn example []
-  (let [img (BufferedImageUtils/fromUrl "https://raw.githubusercontent.com/dmlc/web-data/master/gluoncv/pose/soccer.png")]
-    (with-open [model (.loadModel (MxModelZoo/SSD) (ProgressBar.))]
-      (let [predict-result (-> model
-                               (.newPredictor)
-                               (.predict img))]
-        (ImageVisualization/drawBoundingBoxes img predict-result)
-        (ImageIO/write img "png" (io/file "ssd.png"))))))
+(defn detect-image-objects [^BufferedImage source dest]
+  (with-open [model (.loadModel (MxModelZoo/SSD) (ProgressBar.))
+              predictor (.newPredictor model)]
+    (let [predict-result (.predict predictor source)]
+      (ImageVisualization/drawBoundingBoxes source predict-result)
+      (ImageIO/write source "png" dest))))
+
+(comment
+  (detect-image-objects (BufferedImageUtils/fromUrl "https://raw.githubusercontent.com/dmlc/web-data/master/gluoncv/pose/soccer.png")
+                        (io/file "ssd.png")))
